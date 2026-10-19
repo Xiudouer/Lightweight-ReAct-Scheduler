@@ -1,0 +1,15 @@
+__pycache__/
+*.py[cod]
+.venv/
+.env
+.env.*
+!.env.example
+config.json
+trace*.jsonl
+*.log
+runtime/
+build/
+releases/
+*.exe
+*.zip
+verification/
