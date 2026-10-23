@@ -1,5 +1,7 @@
 # LiteReAct 1.0.0
 
+[![tests](https://github.com/Xiudouer/Lightweight-ReAct-Scheduler/actions/workflows/tests.yml/badge.svg?branch=main)](https://github.com/Xiudouer/Lightweight-ReAct-Scheduler/actions/workflows/tests.yml)
+
 一个从 WeKnora 调度思路中精简出来的本地 Agent 框架。保留 **Think → Act → Observe**、工具注册、错误反馈、有限迭代和停止条件；接入 Ollama。没有数据库、Web 服务、多租户、RAG、MCP 服务或企业级依赖，Python 源码只使用标准库。
 
 本仓库包含 **完整源码、CLI、测试、示例和构建脚本**。Windows 便携 EXE、`runtime/` 和模型权重不在此仓库，需按 `build-windows.ps1` 或单独发布的离线包获取。

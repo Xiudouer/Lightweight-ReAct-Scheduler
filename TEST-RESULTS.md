@@ -27,6 +27,10 @@ OK (skipped=1)
 
 构建机的原始测试日志未随源码仓库提交；上表为本次 1.0.0 构建的记录摘要。
 
+## CI
+
+GitHub Actions `tests` 于 2026-10-23 在 Ubuntu/Windows × CPython 3.10/3.12 矩阵通过 39 项测试（Windows 跳过符号链接项）；Linux/Python 3.12 另运行离线 demo 通过。CI 不替代 Windows 便携程序验证。
+
 ## Windows 便携程序测试
 
 使用 PyInstaller 6.16.0 和正式 CPython 3.12.14 构建 Windows x64 便携版。将完整程序复制到包含中文及空格的新路径，再对 `LiteReAct.exe` 运行 4 项命令行测试：
@@ -44,4 +48,4 @@ OK
 
 构建环境没有运行中的 Ollama 服务或已准备的本地模型。因此**没有声称通过真实模型质量、速度、显存需求或特定模型兼容性测试**。HTTP 测试服务验证的是协议与调度器行为，不模拟模型智能。收件人仍需自行准备 Ollama 与模型。
 
-源代码仅依赖标准库。单独分发的 Windows 便携程序只测试了 Windows x64；未在 macOS/Linux 实机验证源码运行，也未做独立干净 Windows 虚拟机验收。
+源代码仅依赖标准库。单独分发的 Windows 便携程序只测试了 Windows x64；Linux 已由 GitHub Actions 覆盖，macOS 实机未验证，也未做独立干净 Windows 虚拟机验收。
