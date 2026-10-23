@@ -4,6 +4,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- GitHub Actions `tests` 工作流：Ubuntu/Windows × Python 3.10/3.12 运行 unittest，并在 Linux/Python 3.12 上运行离线 demo。
+
 ## [1.0.0] - 2026-10-19
 
 ### Added
