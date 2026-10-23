@@ -13,3 +13,9 @@ releases/
 *.exe
 *.zip
 verification/
+workspace/*
+!workspace/welcome.txt
+dist/
+*.spec
+.DS_Store
+Thumbs.db

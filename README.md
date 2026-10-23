@@ -1,36 +1,27 @@
-# Lightweight ReAct Scheduler
+# LiteReAct 1.0.0
 
-> 文档与示例预览：本次提交只包含 README、examples 和必要的许可证/来源说明。调度器库源码、CLI、EXE 和发布脚本不包含在本次提交中。下列运行与发布命令适用于完整 LiteReAct 工程；示例也需要完整工程提供 `lite_react` 模块。
+一个从 WeKnora 调度思路中精简出来的本地 Agent 框架。保留 **Think → Act → Observe**、工具注册、错误反馈、有限迭代和停止条件；接入 Ollama。没有数据库、Web 服务、多租户、RAG、MCP 服务或企业级依赖，Python 源码只使用标准库。
 
-实现名称：`LiteReAct`，当前版本 `1.0.0`。
+本仓库包含 **完整源码、CLI、测试、示例和构建脚本**。Windows 便携 EXE、`runtime/` 和模型权重不在此仓库，需按 `build-windows.ps1` 或单独发布的离线包获取。
 
-一个从 WeKnora 调度思路中精简出来的本地 Agent 框架。
+## 快速开始
 
-保留 **Think → Act → Observe**、工具注册、错误反馈、有限迭代和停止条件；接入 Ollama。没有数据库、Web 服务、多租户、RAG、MCP 服务或企业级依赖。Python 源码只使用标准库。
+需要 Python 3.10+ 和本地 [Ollama](https://ollama.com/download)（仅真实模型调用需要）。源码没有第三方运行依赖，无需 `pip install`。
 
-## 当前交付形态与入口
+```sh
+python run.py --demo                  # 离线脚本演示，不调用 Ollama
+python -m unittest discover -s tests -v
+ollama pull qwen3:4b                  # 任选本机已有模型
+python run.py "计算 (11434+12341)*412" --model qwen3:4b
+```
 
-这是 **Python 库 + 可运行 CLI + Windows 便携程序**，不是 Go 库。目前没有 HTTP 服务或 `serve` 入口；`OllamaClient` 是访问 Ollama 的 HTTP 客户端，不是对外提供接口的服务端。
+首次使用可复制配置示例：
 
-| 入口 | 用法 | 形态 |
-|---|---|---|
-| `lite_react.Agent` | `Agent(client, tools).run(task)` | 可嵌入的 Python 库 |
-| `run.py` | `python run.py "任务"` | 源码 CLI，Python 3.10+ |
-| `LiteReAct.exe` | `.\LiteReAct.exe "任务"` | Windows x64 便携 CLI，自带运行时 |
-| `start.bat` | 双击，或传入 CLI 参数 | Windows 交互启动器 |
-| `demo.bat` / `doctor.bat` | 离线演示 / 检查 Ollama | 辅助入口 |
+```sh
+cp config.example.json config.json
+```
 
-需要接入 Web 应用时，可以在宿主服务内调用 `Agent.run()`；HTTP 路由、认证和并发隔离需由宿主实现，本版本没有附带这些服务能力。
-
-## 直接使用 Windows 便携包
-
-1. **先解压整个 ZIP**，保持 `LiteReAct.exe` 与 `runtime/` 在一起，不要在压缩包里运行。
-2. 安装并启动 [Ollama](https://ollama.com/download)。在终端准备一个模型，例如 `ollama pull qwen3:4b`。模型单独下载，未放进本压缩包。
-3. 双击 **`start.bat`**，输入任务即可。可先双击 `doctor.bat` 检查连接；`demo.bat` 不需要 Ollama，展示脚本模型驱动的真实工具循环。
-
-便携程序适用于 Windows x64，接收者不需要安装 Python。若已有其他模型，可以编辑 `config.json` 的 `model`；交互启动时也可以从本机已有模型中选择。
-
-把待处理的 UTF-8 文本或 Markdown 放进 `workspace/`。也可以通过 `--workspace` 指定一个目录。此版本内置文件工具只读取选定目录，不负责 PDF/Office 解析。
+`config.json` 已被 `.gitignore` 排除；相对 `workspace` 以配置文件所在目录为基准。把待处理的 UTF-8 文本或 Markdown 放进 `workspace/`，或用 `--workspace` 指定目录。内置文件工具只读取选定目录，不负责 PDF/Office 解析。
 
 可直接尝试：
 
@@ -38,33 +29,18 @@
 - `列出工作目录文件，读取 welcome.txt，然后总结它的使用说明。`
 - `在工作目录搜索“利率”，列出文件名、行号和相关内容。`
 
-命令行：
+常用命令：
 
-```powershell
-.\LiteReAct.exe "用工具计算 (11434+12341)*412"
-.\LiteReAct.exe "总结目录里的文本" --workspace "./notes"
-.\LiteReAct.exe "计算 42*17" --model qwen3:4b --no-review
-.\LiteReAct.exe "计算 42*17" --mode json
-.\LiteReAct.exe "搜索项目说明" --json --trace trace.jsonl
-.\LiteReAct.exe --demo --json
-.\LiteReAct.exe --doctor
+```sh
+python run.py "总结目录里的文本" --workspace "./notes"
+python run.py "计算 42*17" --model qwen3:4b --no-review
+python run.py "计算 42*17" --mode json
+python run.py "搜索项目说明" --json --trace trace.jsonl
+python run.py --demo --json
+python run.py --doctor
 ```
 
 `--json` 输出答案、终止状态、轮数、工具次数、评分和事件；进程只在 `completed` 时返回 0，未完整完成的状态返回 2，连接检查失败返回 1。交互模式每条任务独立运行，输入 `/exit` 退出。`Ctrl+C` 中断当前调用；框架也可接收取消事件。
-
-## 本次公开的示例
-
-- `examples/basic_agent.py`：通过命令行参数设置任务、模型与 Ollama 地址，运行最小 Agent。
-- `examples/custom_tool.py`：注册一个温度转换工具，展示如何扩展工具表。
-- `examples/workspace/welcome.txt`：只含通用说明的示例文本。
-
-这些示例没有个人账号、固定用户目录或密钥。示例工作目录相对脚本自身定位。
-在完整 LiteReAct 工程中运行：
-
-```sh
-python -m examples.basic_agent "用工具计算 42*17" --model qwen3:4b
-python -m examples.custom_tool
-```
 
 ## 调度流程
 
@@ -85,9 +61,7 @@ Observe：把成功结果/结构化错误回送模型
 
 默认最多 10 个主决策轮、24 次工具调用、每轮 4 次调用，相同工具加相同参数最多执行 2 次。每个工具结果最多保留 6000 字符；消息上下文达到字符预算时停止并返回明确状态，不会悄悄切断工具调用/结果配对。工具按模型给出的顺序串行执行，便于理解和扩展。
 
-模型 HTTP 临时故障可重试，**工具不会因为模型 HTTP 重试而自动重放**。无效参数和工具异常作为观察反馈给下一轮；未知工具、空响应、格式错误、重复调用和预算耗尽均有明确处理。
-
-本版采用非流式模型请求，优先保持调度器简单；终端显示阶段事件，不输出或保存模型的隐藏思维过程。
+模型 HTTP 临时故障可重试，**工具不会因为模型 HTTP 重试而自动重放**。无效参数和工具异常作为观察反馈给下一轮；未知工具、空响应、格式错误、重复调用和预算耗尽均有明确处理。本版采用非流式模型请求，终端显示阶段事件，不输出或保存模型的隐藏思维过程。
 
 ## 置信度的含义
 
@@ -126,15 +100,6 @@ WeKnora 通用 Agent 核心没有可直接移植的统一答案自评分，本�
 
 ## 作为框架使用
 
-源码需要 Python 3.10+，不需要 `pip install`：
-
-```powershell
-python run.py --demo
-python run.py "计算 2+3" --model qwen3:4b
-python -m unittest discover -s tests -v
-python -m examples.custom_tool
-```
-
 ```python
 from lite_react import Agent, AgentConfig, OllamaClient, builtin_tools
 
@@ -162,82 +127,29 @@ print(result.status, result.answer)
 
 只有显式指定 `--trace` 才保存事件日志，日志包含工具参数和结果。默认不写聊天记录、不遥测；配置为本地地址时模型通信留在本机。改用远程 `host` 后，任务及工具结果会发送到该地址。
 
-## 文件结构与构建
+## 仓库结构
 
-```text
-LiteReAct.exe + runtime/   Windows 便携运行文件
-start.bat                 交互启动
-demo.bat / doctor.bat     离线演示 / 连接检查
-config.json               默认配置
-config.example.json       发布使用的干净示例配置
-lite_react/core.py        核心循环和自评改进
-lite_react/tools.py       注册表与内置工具
-lite_react/ollama.py      Ollama HTTP 适配器
-lite_react/cli.py         命令行入口
-tests/                    调度与 HTTP 协议测试
-release.ps1               Windows 一键发布入口
-scripts/release.py        测试、构建、打包与校验流水线
-examples/                 扩展工具示例
-workspace/                默认文本目录
-UPSTREAM.md               与 WeKnora 的对应关系
-TEST-RESULTS.md            实际验证范围
-licenses/                 上游及运行时许可
-```
+| 路径 | 内容 |
+|---|---|
+| `lite_react/` | 核心调度循环、工具注册表、Ollama 适配器、CLI、离线演示 |
+| `tests/` | 39 项标准库 unittest：调度、工具、自评、CLI、HTTP 协议 |
+| `examples/` | 最小 Agent 与自定义工具示例 |
+| `workspace/` | 默认示例文本目录 |
+| `config.example.json` | 配置示例；复制为 `config.json` 后使用 |
+| `run.py` / `run.sh` | 源码 CLI 入口 |
+| `start.bat` / `demo.bat` / `doctor.bat` | Windows 交互启动、离线演示、连接检查 |
+| `build-windows.ps1` | 用 PyInstaller 构建 Windows x64 便携包（构建依赖，非运行依赖） |
+| `pyproject.toml` | 包元数据与 Python 版本要求，无第三方运行依赖 |
+| `UPSTREAM.md` / `THIRD-PARTY.md` | 上游对应关系与第三方声明 |
+| `TEST-RESULTS.md` | 1.0.0 实际验证范围与限制 |
+| `CONTRIBUTING.md` / `CHANGELOG.md` | 贡献流程与版本记录 |
 
-源码可以在 Windows、macOS、Linux 的 Python 环境运行；附带 EXE 只针对 Windows x64。重建 EXE 需在 Windows 安装 PyInstaller 6.16.0，执行 `build-windows.ps1`；PyInstaller 只是构建依赖，源码运行不需要它。
-
-## 生成发布包
-
-脚本生成本地可分发 ZIP，不会自动上传 GitHub、下载模型或修改桌面。先进入项目目录，再执行：
-
-```powershell
-# Windows x64 便携发布：先在所选 Python 环境中安装构建工具
-python -m pip install pyinstaller==6.16.0
-.\release.ps1
-
-# 指定解释器和产物目录（带空格的路径可直接使用）
-.\release.ps1 -Python ".\.venv\Scripts\python.exe" -OutputDir ".\release-artifacts"
-
-# 只发布源码，无需 PyInstaller
-.\release.ps1 -SourceOnly
-```
-
-跨平台生成源码包也可直接执行：
-
-```sh
-python scripts/release.py --source-only
-```
-
-默认输出：
-
-```text
-releases/LiteReAct-1.0.0-Windows-x64.zip
-releases/LiteReAct-1.0.0-Windows-x64.zip.sha256
-releases/LiteReAct-1.0.0-Source.zip
-releases/LiteReAct-1.0.0-Source.zip.sha256
-```
-
-每次命令只生成选定的一种包。版本号从 `lite_react/__init__.py` 的 `__version__` 读取，不依赖 Git 仓库或本机固定路径。脚本按以下步骤执行：
-
-1. 运行源码测试；失败则停止，并保留本次构建目录和日志。
-2. 便携版使用固定 PyInstaller 版本重新构建 EXE；源码版跳过编译。
-3. 按白名单装配源码、说明、许可证和干净示例。不会复制本地 `config.json`、用户 `workspace/` 内容、trace、缓存、旧发布包或旧 EXE。分发包的 `config.json` 来自 `config.example.json`，`workspace/welcome.txt` 来自 `examples/workspace/welcome.txt`。
-4. 便携版对新 EXE 运行 CLI 测试；源码版对装配后的源码运行离线演示。
-5. 写入实际测试记录、`RELEASE-INFO.json` 和逐文件哈希清单；校验 ZIP CRC 和文件 SHA-256 后，输出 ZIP 与 `.sha256`。
-
-已有的同名 ZIP 或校验文件不会被覆盖。重新发布时提高版本号或指定新的 `-OutputDir`；临时构建内容保留在 `build/release-版本号-随机标识/`，可用 `-WorkDir` 指定另一个构建目录。
-
-验证下载文件：
-
-```powershell
-Get-FileHash .\releases\LiteReAct-1.0.0-Windows-x64.zip -Algorithm SHA256
-Get-Content .\releases\LiteReAct-1.0.0-Windows-x64.zip.sha256
-```
-
-完整发布流程需要 Python 3.10+；便携发布还需要 Windows x64。构建和 HTTP 测试使用测试服务，不要求本机存在 Ollama 模型，不能替代真实模型效果验证。
+`start.bat` / `demo.bat` / `doctor.bat` 会优先使用同目录的便携 EXE；没有 EXE 时回退到本机 Python。源码可在 Windows、macOS、Linux 的 Python 环境运行。重建 EXE 需在 Windows 安装 PyInstaller 6.16.0，执行 `build-windows.ps1`；PyInstaller 只用于构建。
 
 ## 来源与验证边界
 
 基于 WeKnora 固定提交 `2fbfb4471581cd5e7d731bc7a2d443fe7d8e95b5` 的核心结构重新实现，保留许可证和源码对应说明。没有把整个 Go 后端打包进来，也不声称与 WeKnora 全功能兼容。
 
-构建机器没有运行中的 Ollama 和本地模型；已验证的是调度器、真实 HTTP 适配器连接测试服务，以及 Windows 便携程序。离线 demo 的模型决策和分数是脚本，真实模型效果取决于接收者的模型与配置。完整工程的验证记录见其 `TEST-RESULTS.md`（本次文档预览不附带测试日志）。
+构建机器没有运行中的 Ollama 和本地模型；已验证的是调度器、真实 HTTP 适配器连接测试服务，以及 Windows 便携程序。离线 demo 的模型决策和分数是脚本，真实模型效果取决于接收者的模型与配置。详见 `TEST-RESULTS.md`。
+
+应用源码使用 MIT 许可证，见 [LICENSE](LICENSE)；上游与构建工具声明见 [THIRD-PARTY.md](THIRD-PARTY.md) 和 [UPSTREAM.md](UPSTREAM.md)。
