@@ -140,6 +140,7 @@ print(result.status, result.answer)
 | `start.bat` / `demo.bat` / `doctor.bat` | Windows 交互启动、离线演示、连接检查 |
 | `build-windows.ps1` | 用 PyInstaller 构建 Windows x64 便携包（构建依赖，非运行依赖） |
 | `pyproject.toml` | 包元数据与 Python 版本要求，无第三方运行依赖 |
+| `licenses/` | Python、PyInstaller 与 WeKnora 上游许可证 |
 | `UPSTREAM.md` / `THIRD-PARTY.md` | 上游对应关系与第三方声明 |
 | `TEST-RESULTS.md` | 1.0.0 实际验证范围与限制 |
 | `CONTRIBUTING.md` / `CHANGELOG.md` | 贡献流程与版本记录 |
